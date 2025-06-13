@@ -1,10 +1,14 @@
+// X11Overlay.cpp
 #include "X11Overlay.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xcomposite.h>
 #include <X11/extensions/shape.h>
+#include <X11/Xatom.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 
 struct X11Overlay::Impl {
     Display* dpy;
@@ -13,6 +17,7 @@ struct X11Overlay::Impl {
     Window win;
     int width, height;
     GC gc;
+    Pixmap pixmap;
 
     Impl(int w, int h) : width(w), height(h) {
         dpy = XOpenDisplay(NULL);
@@ -24,58 +29,45 @@ struct X11Overlay::Impl {
         screen = DefaultScreen(dpy);
         root = RootWindow(dpy, screen);
 
-        int x = (DisplayWidth(dpy, screen) - width) / 2;
-        int y = (DisplayHeight(dpy, screen) - height) / 2;
+        XVisualInfo vinfo;
+        if (!XMatchVisualInfo(dpy, screen, 32, TrueColor, &vinfo)) {
+            fprintf(stderr, "No matching visual\n");
+            exit(1);
+        }
 
         XSetWindowAttributes attrs;
+        attrs.colormap = XCreateColormap(dpy, root, vinfo.visual, AllocNone);
         attrs.override_redirect = True;
         attrs.background_pixel = 0;
         attrs.border_pixel = 0;
 
-        win = XCreateWindow(dpy, root, x, y, width, height, 0,
-                            CopyFromParent, InputOutput, CopyFromParent,
-                            CWOverrideRedirect | CWBackPixel | CWBorderPixel, &attrs);
+        win = XCreateWindow(dpy, root, 0, 0, DisplayWidth(dpy, screen), DisplayHeight(dpy, screen), 0,
+                            vinfo.depth, InputOutput, vinfo.visual,
+                            CWColormap | CWOverrideRedirect | CWBackPixel | CWBorderPixel,
+                            &attrs);
 
-        // Transparent shape mask
-        Pixmap mask = XCreatePixmap(dpy, win, width, height, 1);
-        GC mask_gc = XCreateGC(dpy, mask, 0, NULL);
-        XSetForeground(dpy, mask_gc, 0);
-        XFillRectangle(dpy, mask, mask_gc, 0, 0, width, height);
-        XSetForeground(dpy, mask_gc, 1);
-        XFillArc(dpy, mask, mask_gc, 0, 0, width, height, 0, 360 * 64);
-        XShapeCombineMask(dpy, win, ShapeBounding, 0, 0, mask, ShapeSet);
-        XShapeCombineMask(dpy, win, ShapeInput, 0, 0, None, ShapeSet);
-        XFreePixmap(dpy, mask);
-        XFreeGC(dpy, mask_gc);
+        // Input pass-through
+        XShapeCombineRectangles(dpy, win, ShapeInput, 0, 0, NULL, 0, ShapeSet, 0);
 
-        // Graphics context for drawing
-        gc = XCreateGC(dpy, win, 0, NULL);
         XMapWindow(dpy, win);
         XFlush(dpy);
+
+        gc = XCreateGC(dpy, win, 0, NULL);
     }
 
     ~Impl() {
-        XDestroyWindow(dpy, win);
         XFreeGC(dpy, gc);
+        XDestroyWindow(dpy, win);
         XCloseDisplay(dpy);
     }
 
     void drawCircle(unsigned long color) {
         XSetForeground(dpy, gc, color);
-        XFillArc(dpy, win, gc, 0, 0, width, height, 0, 360 * 64);
+        XFillArc(dpy, win, gc, (DisplayWidth(dpy, screen)-width)/2, (DisplayHeight(dpy, screen)-height)/2, width, height, 0, 360*64);
         XFlush(dpy);
     }
 };
 
-// Public API
-X11Overlay::X11Overlay(int width, int height) {
-    pImpl = new Impl(width, height);
-}
-
-X11Overlay::~X11Overlay() {
-    delete pImpl;
-}
-
-void X11Overlay::drawCircle(unsigned long color) {
-    pImpl->drawCircle(color);
-}
+X11Overlay::X11Overlay(int width, int height) : pImpl(new Impl(width, height)) {}
+X11Overlay::~X11Overlay() { delete pImpl; }
+void X11Overlay::drawCircle(unsigned long color) { pImpl->drawCircle(color); }
