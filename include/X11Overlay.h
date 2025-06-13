@@ -29,10 +29,14 @@ public:
 
     // Draw multiple polygons
     void drawPolygons(XPoint** polygons, int* counts, int numPolygons, unsigned long color);
-
 private:
-    struct Impl;
-    Impl* pImpl;
+    Display* dpy;
+    int screen;
+    Window root;
+    Window win;
+    int width, height;
+    GC gc;
+
 };
 
 #endif
