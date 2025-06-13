@@ -65,10 +65,53 @@ struct X11Overlay::Impl {
     }
 
     void drawCircle(unsigned long color) {
-        // Ensure fully opaque by setting alpha bits to 0xFF if ARGB is interpreted
         color |= 0xff000000;
         XSetForeground(dpy, gc, color);
         XFillArc(dpy, win, gc, (DisplayWidth(dpy, screen)-width)/2, (DisplayHeight(dpy, screen)-height)/2, width, height, 0, 360*64);
+        XFlush(dpy);
+    }
+
+    void drawCircle(int x, int y, int radius, unsigned long color) {
+        color |= 0xff000000;
+        XSetForeground(dpy, gc, color);
+        XFillArc(dpy, win, gc, x - radius, y - radius, radius * 2, radius * 2, 0, 360 * 64);
+        XFlush(dpy);
+    }
+
+    void drawLine(int x1, int y1, int x2, int y2, unsigned long color) {
+        color |= 0xff000000;
+        XSetForeground(dpy, gc, color);
+        XDrawLine(dpy, win, gc, x1, y1, x2, y2);
+        XFlush(dpy);
+    }
+
+    void drawRect(int x, int y, int width, int height, unsigned long color) {
+        color |= 0xff000000;
+        XSetForeground(dpy, gc, color);
+        XDrawRectangle(dpy, win, gc, x, y, width, height);
+        XFlush(dpy);
+    }
+
+    void drawLines(XPoint* points, int count, unsigned long color) {
+        color |= 0xff000000;
+        XSetForeground(dpy, gc, color);
+        XDrawLines(dpy, win, gc, points, count, CoordModeOrigin);
+        XFlush(dpy);
+    }
+
+    void drawRects(XRectangle* rects, int count, unsigned long color) {
+        color |= 0xff000000;
+        XSetForeground(dpy, gc, color);
+        XDrawRectangles(dpy, win, gc, rects, count);
+        XFlush(dpy);
+    }
+
+    void drawPolygons(XPoint** polygons, int* counts, int numPolygons, unsigned long color) {
+        color |= 0xff000000;
+        XSetForeground(dpy, gc, color);
+        for (int i = 0; i < numPolygons; ++i) {
+            XDrawLines(dpy, win, gc, polygons[i], counts[i], CoordModeOrigin);
+        }
         XFlush(dpy);
     }
 };
@@ -76,3 +119,9 @@ struct X11Overlay::Impl {
 X11Overlay::X11Overlay(int width, int height) : pImpl(new Impl(width, height)) {}
 X11Overlay::~X11Overlay() { delete pImpl; }
 void X11Overlay::drawCircle(unsigned long color) { pImpl->drawCircle(color); }
+void X11Overlay::drawCircle(int x, int y, int radius, unsigned long color) { pImpl->drawCircle(x, y, radius, color); }
+void X11Overlay::drawLine(int x1, int y1, int x2, int y2, unsigned long color) { pImpl->drawLine(x1, y1, x2, y2, color); }
+void X11Overlay::drawRect(int x, int y, int width, int height, unsigned long color) { pImpl->drawRect(x, y, width, height, color); }
+void X11Overlay::drawLines(XPoint* points, int count, unsigned long color) { pImpl->drawLines(points, count, color); }
+void X11Overlay::drawRects(XRectangle* rects, int count, unsigned long color) { pImpl->drawRects(rects, count, color); }
+void X11Overlay::drawPolygons(XPoint** polygons, int* counts, int numPolygons, unsigned long color) { pImpl->drawPolygons(polygons, counts, numPolygons, color); }
