@@ -1,13 +1,13 @@
 CXX = g++
 CXXFLAGS = -std=c++20 -Wall -g
 TARGET = out
-SRCS = src/main.cpp
+SRCS = src/main.cpp src/X11Overlay.cpp
 OBJS = $(patsubst src/%.cpp,build/%.o,$(SRCS))
 BUILD_DIR = build
 
 # Add the required libraries and flags
 LIBS = -lX11 -lXext -lXcomposite -lXfixes -lcairo
-INCLUDES = -I/usr/X11R6/include
+INCLUDES = -I/usr/X11R6/include -I include/
 LDFLAGS = -L/usr/X11R6/lib
 
 # Add pkg-config for Cairo
