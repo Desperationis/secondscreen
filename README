@@ -1,0 +1,1 @@
+sudo apt-get install --fix-missing libx11-dev libxcomposite-dev libxfixes-dev libcairo2-dev
