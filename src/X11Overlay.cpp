@@ -53,6 +53,9 @@ struct X11Overlay::Impl {
         XFlush(dpy);
 
         gc = XCreateGC(dpy, win, 0, NULL);
+
+        // Ensure fully opaque drawing by disabling graphics exposure
+        XSetGraphicsExposures(dpy, gc, False);
     }
 
     ~Impl() {
@@ -62,6 +65,8 @@ struct X11Overlay::Impl {
     }
 
     void drawCircle(unsigned long color) {
+        // Ensure fully opaque by setting alpha bits to 0xFF if ARGB is interpreted
+        color |= 0xff000000;
         XSetForeground(dpy, gc, color);
         XFillArc(dpy, win, gc, (DisplayWidth(dpy, screen)-width)/2, (DisplayHeight(dpy, screen)-height)/2, width, height, 0, 360*64);
         XFlush(dpy);
