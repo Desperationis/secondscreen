@@ -35,6 +35,30 @@ int main() {
     XPoint* polys[] = { poly1, poly2 };
     int polyCounts[] = { 4, 4 };
     overlay.drawPolygons(polys, polyCounts, 2, 0xffffff); // White
+    
+    const char* font =
+    "-adobe-helvetica-bold-r-normal--14-140-75-75-p-80-iso8859-1";
+    /*
+    Field Index | Example       | Description
+    -------------|---------------|-------------------------------------------------------
+         [1]     *               | Wildcard to match any foundry
+         [2]     adobe           | Foundry (font vendor), e.g., adobe, b&h
+         [3]     helvetica       | Font family name
+         [4]     bold            | Weight: normal, bold, medium, etc.
+         [5]     r               | Slant: r (roman), i (italic), o (oblique)
+         [6]     normal          | Set width: normal, condensed, expanded
+         [7]     *               | Add style name (optional additional style)
+         [8]     14              | Pixel size (height in pixels)
+         [9]     140             | Point size * 10
+        [10]     75              | Horizontal resolution (dpi)
+        [11]     75              | Vertical resolution (dpi)
+        [12]     p               | Spacing: p (proportional), m (monospaced), c (charcell)
+        [13]     80              | Average width (in 1/10ths pixel)
+        [14]     iso8859         | Character set registry
+        [15]     1               | Encoding (often language/country specific)
+    */
+
+    overlay.drawText(100, 300, "Monospaced", 0xff0000, font); // Wildcard font
 
     // Keep running
     while (true) {

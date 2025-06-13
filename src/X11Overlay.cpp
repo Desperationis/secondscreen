@@ -102,3 +102,26 @@ void X11Overlay::drawPolygons(XPoint** polygons, int* counts, int numPolygons, u
     }
     XFlush(dpy);
 }
+
+void X11Overlay::drawText(int x, int y, const char* text, unsigned long color, const char* font) {
+    color |= 0xff000000;
+    XSetForeground(dpy, gc, color);
+
+    XFontStruct* fontInfo = nullptr;
+    if (font != nullptr) {
+        fontInfo = XLoadQueryFont(dpy, font);
+        if (fontInfo) {
+            XSetFont(dpy, gc, fontInfo->fid);
+        }
+    }
+
+    XDrawString(dpy, win, gc, x, y, text, strlen(text));
+    XFlush(dpy);
+
+    if (fontInfo) {
+        XFreeFont(dpy, fontInfo);
+    }
+}
+
+
+

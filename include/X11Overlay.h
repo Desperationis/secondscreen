@@ -29,6 +29,9 @@ public:
 
     // Draw multiple polygons
     void drawPolygons(XPoint** polygons, int* counts, int numPolygons, unsigned long color);
+
+    void drawText(int x, int y, const char* text, unsigned long color, const char* font = nullptr);
+
 private:
     Display* dpy;
     int screen;
