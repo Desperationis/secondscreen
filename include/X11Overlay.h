@@ -32,6 +32,8 @@ public:
 
     void drawText(int x, int y, const char* text, unsigned long color, const char* font = nullptr);
 
+    void pollInput();
+
 private:
     Display* dpy;
     int screen;

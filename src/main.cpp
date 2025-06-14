@@ -59,6 +59,8 @@ int main() {
     */
 
     overlay.drawText(100, 300, "Monospaced", 0xff0000, font); // Wildcard font
+                                                              //
+    overlay.pollInput();
 
     // Keep running
     while (true) {

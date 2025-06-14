@@ -1,14 +1,15 @@
 // X11Overlay.cpp
 #include "X11Overlay.h"
+#include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/Xcomposite.h>
 #include <X11/extensions/shape.h>
-#include <X11/Xatom.h>
-#include <unistd.h>
-#include <cstdlib>
+#include <X11/keysym.h>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <unistd.h>
 
 X11Overlay::X11Overlay(int w, int h) : width(w), height(h) {
     dpy = XOpenDisplay(NULL);
@@ -123,5 +124,59 @@ void X11Overlay::drawText(int x, int y, const char* text, unsigned long color, c
     }
 }
 
+int x_error_handler(Display* dpy, XErrorEvent* error) {
+    if (error->request_code == 33 /* X_GrabKey */ && error->error_code == BadAccess) {
+        fprintf(stderr, "Warning: Could not grab some modifier for 'w'\n");
+        return 0; // Ignore and continue
+    }
+    // Handle other errors normally
+    return 1;
+}
+
+void X11Overlay::pollInput() {
+    // Get keycode for 'w'
+    KeyCode wKey = XKeysymToKeycode(dpy, XK_w);
+
+    // Common modifiers: none, NumLock, CapsLock, both
+    unsigned int modifiers[] = { 0, Mod2Mask, LockMask, Mod2Mask|LockMask };
+    for (unsigned int i = 0; i < sizeof(modifiers)/sizeof(modifiers[0]); ++i) {
+        XGrabKey(dpy, wKey, modifiers[i], root, True, GrabModeAsync, GrabModeAsync);
+    }
+
+    XSelectInput(dpy, win, KeyPressMask | KeyReleaseMask);
 
 
+
+    while (true) {
+        while (XPending(dpy)) {
+            XEvent ev;
+            XNextEvent(dpy, &ev);
+
+            if (ev.type == KeyPress) {
+                KeySym sym = XLookupKeysym(&ev.xkey, 0);
+                printf("KeyPress: %s\n", XKeysymToString(sym));
+
+                if (sym == XK_w) {
+                    // Show overlay when 'w' is pressed
+                    XMapWindow(dpy, win);
+                    XFlush(dpy);
+                    // Do not forward 'w'
+                    continue;
+                } else {
+                    // Forward other keys (stub)
+                }
+            } else if (ev.type == KeyRelease) {
+                KeySym sym = XLookupKeysym(&ev.xkey, 0);
+                if (sym == XK_w) {
+                    // Hide overlay when 'w' is released
+                    XUnmapWindow(dpy, win);
+                    XFlush(dpy);
+                }
+            }
+        }
+        usleep(10000); // Sleep 10ms to reduce CPU usage
+    }
+
+    // Ungrab before exit (not reached in this loop)
+    XUngrabKey(dpy, wKey, AnyModifier, root);
+}
