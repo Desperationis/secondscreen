@@ -1,6 +1,6 @@
 # secondscreen
 
-This is a screen drawn on top of X11 window managers (works with i3) to put whatever you want on it
+This is a screen drawn on top of X11 window managers (works with i3 and GNOME, possibly more) to put whatever you want on it
 
 
 ## Prerequisites
