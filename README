@@ -1,1 +1,7 @@
+# secondscreen
+
+This is a screen drawn on top of X11 window managers (works with i3) to put whatever you want on it
+
+
+## Prerequisites
 sudo apt-get install --fix-missing libx11-dev libxcomposite-dev libxfixes-dev libcairo2-dev
