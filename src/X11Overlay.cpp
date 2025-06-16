@@ -6,6 +6,7 @@
 #include <X11/extensions/Xcomposite.h>
 #include <X11/extensions/shape.h>
 #include <X11/keysym.h>
+#include <iostream>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -158,8 +159,8 @@ void X11Overlay::pollInput() {
 
                 if (sym == XK_w) {
                     // Show overlay when 'w' is pressed
-                    XMapWindow(dpy, win);
-                    XFlush(dpy);
+                    std::cout << std::endl;
+                    std::cout << "pressed W" << std::endl;
                     // Do not forward 'w'
                     continue;
                 } else {
@@ -169,8 +170,8 @@ void X11Overlay::pollInput() {
                 KeySym sym = XLookupKeysym(&ev.xkey, 0);
                 if (sym == XK_w) {
                     // Hide overlay when 'w' is released
-                    XUnmapWindow(dpy, win);
-                    XFlush(dpy);
+                    //XUnmapWindow(dpy, win);
+                    //XFlush(dpy);
                 }
             }
         }
